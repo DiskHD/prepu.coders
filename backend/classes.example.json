@@ -1,0 +1,8 @@
+{
+  "20_pesos": { "denomination": 20, "currency": "MXN" },
+  "50_pesos": { "denomination": 50, "currency": "MXN" },
+  "100_pesos": { "denomination": 100, "currency": "MXN" },
+  "200_pesos": { "denomination": 200, "currency": "MXN" },
+  "500_pesos": { "denomination": 500, "currency": "MXN" },
+  "1000_pesos": { "denomination": 1000, "currency": "MXN" }
+}

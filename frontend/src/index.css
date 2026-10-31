@@ -1,0 +1,90 @@
+@import 'tailwindcss';
+
+/* Colores como tokens: el modo alto contraste solo redefine las variables. */
+@theme {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --font-sans: 'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+:root {
+  --bg: #0b1220;
+  --surface: #131c2e;
+  --surface-2: #1e293f;
+  --fg: #f8fafc;
+  --muted: #cbd5e1;
+  --line: #475569;
+  --accent: #fbbf24;
+  --accent-fg: #0b1220;
+  --success: #4ade80;
+  --danger: #f87171;
+  --focus: #fbbf24;
+  color-scheme: dark;
+}
+
+:root[data-contrast='high'] {
+  --bg: #000000;
+  --surface: #000000;
+  --surface-2: #1a1a1a;
+  --fg: #ffffff;
+  --muted: #ffffff;
+  --line: #ffffff;
+  --accent: #ffff00;
+  --accent-fg: #000000;
+  --success: #00ff66;
+  --danger: #ff4d4d;
+  --focus: #00e5ff;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+}
+
+/* Foco muy visible para teclado y lectores de pantalla. */
+:focus-visible {
+  outline: 4px solid var(--focus);
+  outline-offset: 3px;
+}
+[tabindex='-1']:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -100px;
+  z-index: 50;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-weight: 700;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
