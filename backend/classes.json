@@ -1,0 +1,12 @@
+{
+  "20_nuevo": { "denomination": 20, "currency": "MXN" },
+  "20_viejo": { "denomination": 20, "currency": "MXN" },
+  "50_nuevo": { "denomination": 50, "currency": "MXN" },
+  "50_viejo": { "denomination": 50, "currency": "MXN" },
+  "100_nuevo": { "denomination": 100, "currency": "MXN" },
+  "100_viejo": { "denomination": 100, "currency": "MXN" },
+  "200_nuevo": { "denomination": 200, "currency": "MXN" },
+  "500_nuevo": { "denomination": 500, "currency": "MXN" },
+  "500_viejo": { "denomination": 500, "currency": "MXN" },
+  "1000_nuevo": { "denomination": 1000, "currency": "MXN" }
+}

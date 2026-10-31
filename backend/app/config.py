@@ -8,8 +8,8 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Pesos exportados desde Colab (runs/detect/train/weights/best.pt).
-MODEL_PATH = Path(os.getenv("MODEL_PATH", BASE_DIR / "models" / "best.pt"))
+# Pesos exportados desde Colab; por convención del equipo viven en <raíz>/models/best.pt.
+MODEL_PATH = Path(os.getenv("MODEL_PATH", BASE_DIR.parent / "models" / "best.pt"))
 # Archivo opcional que traduce cada clase del modelo a denominación y moneda.
 CLASSES_PATH = Path(os.getenv("CLASSES_PATH", BASE_DIR / "classes.json"))
 # Moneda que se asume cuando la clase no la indica (p. ej. "200_pesos").

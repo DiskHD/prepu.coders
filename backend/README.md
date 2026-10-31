@@ -16,7 +16,7 @@ files.download('/content/runs/detect/train/weights/best.pt')
 - Si es un modelo de **clasificación**, la ruta es `runs/classify/train/weights/best.pt`.
 - Si guardaste en Google Drive, descarga `best.pt` desde ahí.
 
-Copia el archivo a `backend/models/best.pt`.
+Copia el archivo a `models/best.pt` (en la raíz del repositorio, no dentro de `backend/`).
 
 ## 2. Revisar los nombres de las clases
 
@@ -59,7 +59,7 @@ http://localhost:8000/docs permite probar `/api/identify` subiendo una foto.
 
 | Variable | Por defecto | Qué hace |
 |---|---|---|
-| `MODEL_PATH` | `models/best.pt` | Ruta de los pesos |
+| `MODEL_PATH` | `../models/best.pt` | Ruta de los pesos |
 | `CLASSES_PATH` | `classes.json` | Mapa clase → denominación/moneda |
 | `DEFAULT_CURRENCY` | `MXN` | Moneda si la clase no la indica |
 | `DETECTION_CONFIDENCE` | `0.25` | Umbral de YOLO para considerar una detección |
