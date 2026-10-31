@@ -12,7 +12,7 @@ Toda la aplicación se puede usar sin ver la pantalla: funciona con lector de pa
 
 ## Índice
 
-1. [Cómo funciona](#1-cómo-funciona)
+1. [Cómo funciona](#1-cómo-funciona) · [Tecnologías](#tecnologías)
 2. [Estructura del repositorio](#2-estructura-del-repositorio)
 3. [Ejecutar el proyecto en cualquier computadora](#3-ejecutar-el-proyecto-en-cualquier-computadora)
 4. [Probar en el teléfono](#4-probar-en-el-teléfono)
@@ -46,6 +46,32 @@ Cámara del teléfono · Voz (Web Speech API) · Lector de pantalla
 
 - El reconocimiento se ejecuta **solo en Python**. El frontend nunca inventa resultados: si el servidor no responde, lo dice («el reconocimiento real todavía no está disponible»).
 - En desarrollo, Vite redirige las peticiones `/api` del frontend al backend en `http://localhost:8000`, así que no hace falta configurar CORS ni URLs.
+
+### Tecnologías
+
+**Frontend (la página web)**
+
+- **React** (18.3) con **TypeScript** (5.6): la interfaz y su lógica.
+- **Vite** (5.4): el servidor de desarrollo y la compilación.
+- **Tailwind CSS** (4.1): los estilos.
+- **Lucide React**: los iconos.
+- APIs del propio navegador:
+  - **Web Speech API** para la voz;
+  - **MediaDevices API** para la cámara;
+  - **Web Audio API** para los tonos;
+  - **Vibration API** para la vibración.
+
+**Backend (el servidor)**
+
+- **Python** con **FastAPI** (0.115): la API que recibe la foto y devuelve el resultado.
+- **Uvicorn** (0.32): el servidor que ejecuta FastAPI.
+- **Ultralytics YOLO11n** (8.4.195, sobre **PyTorch**): el modelo que reconoce el billete.
+- **OpenCV**: detecta si la foto está borrosa y dibuja la caja sobre el billete.
+- **Pillow**: abre la imagen y corrige su orientación.
+
+**Cómo se comunican:** el frontend envía la foto al backend por **HTTP** (API REST, `POST /api/identify`, en formato `multipart/form-data`) y el backend responde en **JSON**.
+
+Las versiones exactas están en `frontend/package.json` y `backend/requirements.txt`.
 
 ## 2. Estructura del repositorio
 
@@ -403,7 +429,7 @@ Los tipos del contrato están en `frontend/src/types/identification.ts` y su tra
 - Navegación completa con teclado; `Escape` vuelve al inicio.
 - Ante resultados dudosos la app pide otra foto en lugar de anunciar un valor como seguro.
 
-**Tecnologías:** React 18, TypeScript, Tailwind CSS 4, Lucide React, Vite 5, Web Speech API, MediaDevices API.
+Las tecnologías usadas están en [Tecnologías](#tecnologías).
 
 ## 9. Configuración
 
