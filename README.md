@@ -513,3 +513,87 @@ No subas el dataset completo, entornos virtuales (`.venv/`), `node_modules/` ni 
 - [Banco de México: billetes en circulación](https://www.banxico.org.mx/)
 
 Antes de redistribuir imágenes o el modelo, revisa las licencias del dataset de Roboflow y de Ultralytics (AGPL-3.0), sobre todo si el proyecto se publicará o comercializará.
+
+## Conteo y suma de múltiples billetes mexicanos
+
+La pantalla de identificación permite elegir **Contar y sumar billetes mexicanos**
+(modo inicial) o **Identificar un billete** (comportamiento individual anterior).
+Coloca los billetes completos, separados y con buena iluminación. El resultado
+muestra cantidad, total en MXN, denominación y confianza de cada billete, y las
+cajas sobre la foto. El asistente anuncia el total en español (`es-MX`), conserva
+los anuncios para lectores de pantalla y permite repetir el resultado.
+
+El detector está en `backend/app/detector.py`, la API FastAPI en
+`backend/app/main.py` y la interfaz en `frontend/src/pages/Identification.tsx`.
+Se verificó que `models/best.pt` es un modelo de detección con estas clases reales:
+`1000_nuevo`, `100_nuevo`, `100_viejo`, `200_nuevo`, `20_nuevo`, `20_viejo`,
+`500_nuevo`, `500_viejo`, `50_nuevo`, `50_viejo`.
+El conteo usa exclusivamente su correspondencia explícita en `backend/classes.json`;
+no deduce cantidades a partir de números en etiquetas desconocidas.
+
+### API compatible
+
+`POST /api/identify` conserva el contrato individual y `/api/health` sigue disponible.
+`POST /api/count` acepta la misma imagen multipart en el campo `image`.
+También se puede usar `POST /api/identify?multiple=true`.
+
+```bash
+curl -F image=@foto.jpg http://localhost:8000/api/count
+```
+
+Ejemplo abreviado con dos billetes de 20 pesos (las cajas están en píxeles de la
+imagen orientada según EXIF):
+
+```json
+{
+  "success": true,
+  "prediction": {"class": "20_nuevo", "denomination": 20, "currency": "MXN", "confidence": 0.95, "bbox": [20, 20, 100, 100]},
+  "count": 2,
+  "total": 40,
+  "currency": "MXN",
+  "detections": [
+    {"class": "20_nuevo", "denomination": 20, "currency": "MXN", "confidence": 0.95, "bbox": [20, 20, 100, 100]},
+    {"class": "20_viejo", "denomination": 20, "currency": "MXN", "confidence": 0.90, "bbox": [120, 20, 200, 100]}
+  ],
+  "groups": [{"denomination": 20, "count": 2, "subtotal": 40}],
+  "rejected_detections": [],
+  "partial": false,
+  "message": "Se identificaron 2 billetes. Total: 40 pesos mexicanos."
+}
+```
+
+Se aplica NMS independiente de clase tanto en YOLO como al procesar las cajas:
+`NMS_IOU=0.5` por defecto. Conserva cajas separadas aunque tengan la misma clase.
+La suma excluye confianza inferior a `MIN_CONFIDENCE` (0.6), cajas que tocan el
+margen del 1 % de la imagen, clases sin correspondencia explícita y monedas ajenas
+a MXN. `DETECTION_CONFIDENCE` (0.25) controla el umbral inicial de YOLO.
+El frontend también respeta el umbral de confianza elegido en ajustes; si alguna
+caja aceptada por el servidor queda por debajo, pide repetir la foto.
+
+`rejected_detections` contiene clase, confianza, caja y motivo de exclusión.
+Si se aceptan unos billetes y se excluyen otros, `partial=true` indica que el total
+puede ser parcial y se anuncia esa advertencia. Si no se acepta ninguno se devuelve
+`success=false`, `count=0`, `total=0`. Con un modelo de clasificación, el conteo
+responde `error_code=detector_required`, `total=null` y explica que se necesita un
+detector; el modo individual sigue funcionando sin inventar cajas.
+
+### Verificación y límites
+
+```bash
+cd backend
+.venv/bin/python -m unittest discover -s tests -v
+cd ../frontend
+npm run build
+```
+
+Las pruebas usan `unittest` y `httpx` (instalar este último en el entorno de pruebas
+con `pip install -r requirements-test.txt`). Cubren repetidos, suma mixta, desconocidos, duplicados
+entre clases, baja confianza, recortes, clasificación, compatibilidad HTTP y una
+inferencia real de una imagen vacía con `best.pt`.
+
+NMS reduce duplicados, pero billetes muy superpuestos pueden suprimirse como una
+misma caja. Los billetes que YOLO no detecta no se pueden incluir ni marcar como
+rechazados: `partial=false` no garantiza que estén todos. Hace falta evaluar fotos
+reales etiquetadas para medir precisión y calibrar umbrales; este repositorio no
+incluye ese conjunto de validación. La voz requiere soporte del navegador y estar
+activada en ajustes; los anuncios para lectores de pantalla permanecen disponibles.

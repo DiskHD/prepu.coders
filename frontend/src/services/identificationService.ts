@@ -79,6 +79,7 @@ const KNOWN_ERROR_CODES: ReadonlySet<string> = new Set([
   'no_detection',
   'low_confidence',
   'invalid_image',
+  'detector_required',
 ]);
 
 function errorKindFromBody(body: unknown): IdentificationErrorKind | undefined {
@@ -125,6 +126,7 @@ function mapApiError(err: ApiError): IdentificationOutcome {
 }
 
 export interface IdentifyOptions {
+  multiple?: boolean;
   minConfidence?: number;
   signal?: AbortSignal;
 }
@@ -132,7 +134,7 @@ export interface IdentifyOptions {
 /** Envía la fotografía al backend (multipart/form-data, campo "image"). */
 export async function identifyBanknote(
   image: Blob,
-  { minConfidence = DEFAULT_MIN_CONFIDENCE, signal }: IdentifyOptions = {},
+  { minConfidence = DEFAULT_MIN_CONFIDENCE, signal, multiple = false }: IdentifyOptions = {},
 ): Promise<IdentificationOutcome> {
   const form = new FormData();
   const filename = image instanceof File ? image.name : 'billete.jpg';
@@ -140,7 +142,7 @@ export async function identifyBanknote(
 
   let data: ApiIdentifyResponse;
   try {
-    data = await requestJson<ApiIdentifyResponse>(ENDPOINTS.identify, { method: 'POST', body: form, signal });
+    data = await requestJson<ApiIdentifyResponse>(multiple ? '/api/count' : ENDPOINTS.identify, { method: 'POST', body: form, signal });
   } catch (err) {
     if (err instanceof ApiError) return mapApiError(err);
     return { status: 'error', kind: 'unexpected_response', detail: String(err) };
@@ -166,7 +168,20 @@ export async function identifyBanknote(
     return { status: 'error', kind: 'low_confidence', prediction, serverMessage: data.message };
   }
 
-  return { status: 'success', prediction, serverMessage: data.message, annotatedImageSrc };
+  let summary;
+  if (multiple) {
+    if (!Array.isArray(data.detections) || !data.detections.length ||
+        !data.detections.every(isApiPrediction) || typeof data.total !== 'number' ||
+        data.count !== data.detections.length) {
+      return { status: 'error', kind: 'unexpected_response' };
+    }
+    const detections = data.detections.map(toDomainPrediction);
+    if (detections.some(p => p.confidence < minConfidence)) {
+      return { status: 'error', kind: 'low_confidence', prediction };
+    }
+    summary = { count: data.count, total: data.total, detections, partial: !!data.partial };
+  }
+  return { status: 'success', prediction, summary, serverMessage: data.message, annotatedImageSrc };
 }
 
 /** Comprueba si el backend de reconocimiento está accesible. */

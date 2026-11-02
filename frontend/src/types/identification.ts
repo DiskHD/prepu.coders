@@ -19,7 +19,8 @@ export type ApiErrorCode =
   | 'partial_banknote'
   | 'no_detection'
   | 'low_confidence'
-  | 'invalid_image';
+  | 'invalid_image'
+  | 'detector_required';
 
 export interface ApiPrediction {
   /** Clase del modelo YOLO, p. ej. "200_pesos". */
@@ -34,6 +35,10 @@ export interface ApiPrediction {
 }
 
 export interface ApiIdentifyResponse {
+  count?: number;
+  total?: number | null;
+  detections?: ApiPrediction[];
+  partial?: boolean;
   success: boolean;
   prediction: ApiPrediction | null;
   message: string;
@@ -64,6 +69,7 @@ export type IdentificationErrorKind =
   | 'no_detection'
   | 'low_confidence'
   | 'invalid_image'
+  | 'detector_required'
   | 'network_error'
   | 'server_unavailable'
   | 'timeout'
@@ -71,6 +77,7 @@ export type IdentificationErrorKind =
 
 export interface IdentificationSuccess {
   status: 'success';
+  summary?: { count: number; total: number; detections: BanknotePrediction[]; partial: boolean };
   prediction: BanknotePrediction;
   /** Mensaje del backend, si lo hay. */
   serverMessage?: string;

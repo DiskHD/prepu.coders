@@ -22,6 +22,11 @@ interface IdentificationProps {
 }
 
 function outcomeSpeech(outcome: IdentificationOutcome) {
+  if (outcome.status === 'success' && outcome.summary) {
+    const { count, total, partial } = outcome.summary;
+    const detail = outcome.summary.detections.map(p => `Un billete de ${p.denomination} pesos`).join('. ');
+    return `${count} billetes identificados. Total: ${total} pesos mexicanos. ${detail}.${partial ? ' Se excluyeron detecciones dudosas o sin denominación. El total puede ser parcial.' : ''}`;
+  }
   return outcome.status === 'success' ? resultSpeech(outcome.prediction) : errorSpeech(outcome.kind, outcome.prediction);
 }
 
@@ -29,6 +34,7 @@ export function Identification({ navigate }: IdentificationProps) {
   const { settings } = useSettings();
   const { announce, speak } = useVoiceAssistant();
   const camera = useCamera();
+  const [multiple, setMultiple] = useState(true);
   const [phase, setPhase] = useState<Phase>('capture');
   const [outcome, setOutcome] = useState<IdentificationOutcome | null>(null);
   const [photoSrc, setPhotoSrc] = useState<string>();
@@ -82,7 +88,7 @@ export function Identification({ navigate }: IdentificationProps) {
       requestRef.current?.abort();
       const controller = new AbortController();
       requestRef.current = controller;
-      const result = await identifyBanknote(prepared, { minConfidence: settings.minConfidence, signal: controller.signal });
+      const result = await identifyBanknote(prepared, { multiple, minConfidence: settings.minConfidence, signal: controller.signal });
       if (controller.signal.aborted) return;
 
       setOutcome(result);
@@ -90,7 +96,7 @@ export function Identification({ navigate }: IdentificationProps) {
       playCue(result.status === 'success' ? 'success' : 'error', settings.soundCues);
       announce(outcomeSpeech(result), { assertive: true });
     },
-    [announce, settings.minConfidence, settings.soundCues, stopCamera],
+    [announce, multiple, settings.minConfidence, settings.soundCues, stopCamera],
   );
 
   useEffect(() => {
@@ -138,6 +144,14 @@ export function Identification({ navigate }: IdentificationProps) {
 
       {phase === 'capture' && (
         <>
+          <label className="text-lg font-semibold">
+            Modo de reconocimiento
+            <select value={multiple ? 'multiple' : 'single'} onChange={e => setMultiple(e.target.value === 'multiple')}
+              className="ml-3 rounded border-2 border-line bg-surface p-3">
+              <option value="multiple">Contar y sumar billetes mexicanos</option>
+              <option value="single">Identificar un billete</option>
+            </select>
+          </label>
           <Camera
             videoRef={camera.videoRef}
             status={camera.status}
@@ -148,7 +162,7 @@ export function Identification({ navigate }: IdentificationProps) {
               {CAMERA_ERROR_MESSAGES[camera.error]}
             </p>
           ) : (
-            <p className="text-lg text-muted">Billete plano, con buena luz y completo dentro del recuadro.</p>
+            <p className="text-lg text-muted">Coloca los billetes planos, separados, con buena luz y completos dentro del recuadro.</p>
           )}
 
           <div className="mt-auto flex flex-col gap-3">

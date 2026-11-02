@@ -38,6 +38,10 @@ export interface ErrorCopy {
 }
 
 export const ERROR_COPY: Record<IdentificationErrorKind, ErrorCopy> = {
+  detector_required: {
+    title: 'Se necesita un modelo de detección',
+    advice: 'El modelo cargado es de clasificación. Puedes usar el modo Identificar un billete.',
+  },
   blurry_image: {
     title: 'La imagen está borrosa',
     advice: 'Mantén el teléfono quieto, apóyalo si puedes, y vuelve a capturar con más luz.',

@@ -61,3 +61,6 @@ def parse_class_name(name: str) -> BanknoteClass | None:
     lowered = name.lower()
     currency = next((code for hint, code in CURRENCY_HINTS.items() if hint in lowered), DEFAULT_CURRENCY)
     return BanknoteClass(int(match.group()), currency)
+
+# Umbral IoU para NMS independiente de clase.
+NMS_IOU = float(os.getenv("NMS_IOU", "0.5"))

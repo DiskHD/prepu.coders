@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 from PIL import Image, UnidentifiedImageError
 
 from . import config
-from .detector import Detector
+from .detector import Detector, summarize
 
 CURRENCY_NAMES = {"MXN": "pesos mexicanos", "USD": "dólares estadounidenses", "EUR": "euros"}
 MAX_UPLOAD_BYTES = 15 * 1024 * 1024
@@ -44,11 +44,12 @@ def failure(message: str, error_code: str, prediction: dict | None = None) -> di
 def health():
     if not detector.ready:
         return JSONResponse(status_code=503, content={"status": "error", "detail": detector.load_error})
-    return {"status": "ok", "model": config.MODEL_PATH.name, "classes": detector.class_names}
+    return {"status": "ok", "model": config.MODEL_PATH.name, "classes": detector.class_names,
+            "task": detector.model.task, "supports_count": detector.model.task == "detect"}
 
 
 @app.post("/api/identify")
-async def identify(image: UploadFile = File(...)):
+async def identify(image: UploadFile = File(...), multiple: bool = False):
     if not detector.ready:
         raise HTTPException(status_code=503, detail=detector.load_error)
 
@@ -62,6 +63,9 @@ async def identify(image: UploadFile = File(...)):
         return JSONResponse(status_code=422, content=failure("El archivo no es una imagen válida", "invalid_image"))
 
     analysis = await run_in_threadpool(detector.analyze, pil_image)
+    if multiple:
+        response = summarize(detector, analysis)
+        return response
     det = analysis.detection
 
     if det is None:
@@ -99,3 +103,8 @@ async def identify(image: UploadFile = File(...)):
     if analysis.annotated_jpeg_b64:
         response["annotated_image"] = analysis.annotated_jpeg_b64
     return response
+
+
+@app.post("/api/count")
+async def count_banknotes(image: UploadFile = File(...)):
+    return await identify(image, multiple=True)

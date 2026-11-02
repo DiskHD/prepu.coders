@@ -28,13 +28,13 @@ export const ResultCard = forwardRef<HTMLHeadingElement, ResultCardProps>(functi
         <div className="rounded-3xl border-4 border-success bg-surface p-6 text-center">
           <CheckCircle2 aria-hidden="true" className="mx-auto mb-2 size-12 text-success" />
           <h2 id="result-heading" ref={headingRef} tabIndex={-1} className="flex flex-col">
-            <span className="text-lg font-semibold text-muted">Billete identificado</span>
+            <span className="text-lg font-semibold text-muted">{outcome.summary ? `${outcome.summary.count} billetes · Total` : 'Billete identificado'}</span>
             <span className="text-6xl font-black leading-tight">
               {/* El signo $ se oculta al lector: el texto hablado ya dice la moneda. */}
               <span aria-hidden="true">$</span>
-              {outcome.prediction.denomination}
+              {outcome.summary?.total ?? outcome.prediction.denomination}
             </span>
-            <span className="text-2xl font-bold">{outcome.prediction.currencyName}</span>
+            <span className="text-2xl font-bold">{outcome.summary ? 'pesos mexicanos' : outcome.prediction.currencyName}</span>
           </h2>
         </div>
       ) : (
@@ -51,6 +51,16 @@ export const ResultCard = forwardRef<HTMLHeadingElement, ResultCardProps>(functi
         </div>
       )}
 
+      {isSuccess && outcome.summary && (
+        <div className="rounded-2xl border-2 border-line bg-surface p-5 text-lg">
+          <ul>
+            {outcome.summary.detections.map((p, i) => (
+              <li key={i}>Billete {i + 1}: {p.denomination} pesos mexicanos · Confianza {percent(p.confidence)} %</li>
+            ))}
+          </ul>
+          {outcome.summary.partial && <p role="status">Total parcial: se excluyeron detecciones dudosas o sin denominación. Repite la foto con los billetes completos y separados.</p>}
+        </div>
+      )}
       <div className="flex flex-col gap-3">
         <ActionButton icon={RotateCcw} variant="primary" onClick={onRetry}>
           {isSuccess ? 'IDENTIFICAR OTRO BILLETE' : 'INTENTAR DE NUEVO'}
@@ -60,7 +70,7 @@ export const ResultCard = forwardRef<HTMLHeadingElement, ResultCardProps>(functi
         </ActionButton>
       </div>
 
-      {prediction && (
+      {prediction && !(isSuccess && outcome.summary) && (
         <dl className="grid grid-cols-2 gap-3 rounded-2xl border-2 border-line bg-surface p-5 text-lg">
           <div>
             <dt className="text-base text-muted">Denominación</dt>
@@ -95,6 +105,7 @@ export const ResultCard = forwardRef<HTMLHeadingElement, ResultCardProps>(functi
         annotatedSrc={isSuccess ? outcome.annotatedImageSrc : undefined}
         photoSrc={photoSrc}
         bbox={prediction?.bbox}
+        boxes={isSuccess ? outcome.summary?.detections.flatMap(p => p.bbox ? [p.bbox] : []) : undefined}
       />
 
       {outcome.status === 'error' && outcome.detail && (
@@ -108,15 +119,17 @@ export const ResultCard = forwardRef<HTMLHeadingElement, ResultCardProps>(functi
 });
 
 interface DetectionImageProps {
+  boxes?: [number, number, number, number][];
   annotatedSrc?: string;
   photoSrc?: string;
   bbox?: [number, number, number, number];
 }
 
 /** Imagen anotada del backend o, si solo llega la caja, la foto con la caja dibujada encima. */
-function DetectionImage({ annotatedSrc, photoSrc, bbox }: DetectionImageProps) {
+function DetectionImage({ annotatedSrc, photoSrc, bbox, boxes }: DetectionImageProps) {
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
 
+  const rectangles = boxes ?? (bbox ? [bbox] : []);
   if (annotatedSrc) {
     return (
       <figure className="overflow-hidden rounded-2xl border-2 border-line">
@@ -136,22 +149,23 @@ function DetectionImage({ annotatedSrc, photoSrc, bbox }: DetectionImageProps) {
           className="block w-full"
           onLoad={(e) => setSize({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })}
         />
-        {bbox && size && (
+        {rectangles.length > 0 && size && (
           <svg
             aria-hidden="true"
             viewBox={`0 0 ${size.w} ${size.h}`}
             preserveAspectRatio="none"
             className="absolute inset-0 size-full"
           >
-            <rect
-              x={bbox[0]}
-              y={bbox[1]}
-              width={bbox[2] - bbox[0]}
-              height={bbox[3] - bbox[1]}
+            {rectangles.map((box, i) => <rect
+              key={i}
+              x={box[0]}
+              y={box[1]}
+              width={box[2] - box[0]}
+              height={box[3] - box[1]}
               fill="none"
               className="stroke-accent"
               strokeWidth={Math.max(4, size.w / 150)}
-            />
+            />)}
           </svg>
         )}
       </div>
