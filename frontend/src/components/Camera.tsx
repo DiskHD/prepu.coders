@@ -1,4 +1,4 @@
-import type { RefObject } from 'react';
+import { useState, type RefObject } from 'react';
 import { CameraOff } from 'lucide-react';
 import type { CameraStatus } from '../hooks/useCamera';
 
@@ -8,8 +8,10 @@ interface CameraProps {
   errorMessage?: string;
 }
 
-/** Vista previa de la cámara con una guía visual para encuadrar el billete. */
+/** Muestra todo el fotograma que se enviará al detector, sin recortar los lados. */
 export function Camera({ videoRef, status, errorMessage }: CameraProps) {
+  const [aspectRatio, setAspectRatio] = useState(4 / 3);
+
   return (
     <div
       role="img"
@@ -20,7 +22,8 @@ export function Camera({ videoRef, status, errorMessage }: CameraProps) {
             ? 'Cámara no disponible'
             : 'Iniciando la cámara'
       }
-      className="relative aspect-[3/4] max-h-[55vh] w-full overflow-hidden rounded-3xl border-2 border-line bg-black sm:aspect-video"
+      className="relative max-h-[65vh] w-full overflow-hidden rounded-3xl border-2 border-line bg-black"
+      style={{ aspectRatio }}
     >
       <video
         ref={videoRef}
@@ -28,13 +31,23 @@ export function Camera({ videoRef, status, errorMessage }: CameraProps) {
         muted
         autoPlay
         aria-hidden="true"
-        className={`size-full object-cover ${status === 'ready' ? '' : 'invisible'}`}
+        onLoadedMetadata={(event) => {
+          const video = event.currentTarget;
+          if (video.videoWidth && video.videoHeight) {
+            setAspectRatio(video.videoWidth / video.videoHeight);
+          }
+        }}
+        onResize={(event) => {
+          const video = event.currentTarget;
+          if (video.videoWidth && video.videoHeight) {
+            setAspectRatio(video.videoWidth / video.videoHeight);
+          }
+        }}
+        className={`size-full object-contain ${status === 'ready' ? '' : 'invisible'}`}
       />
 
       {status === 'ready' && (
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
-          <div className="aspect-[2.3/1] w-full max-w-md rounded-xl border-4 border-dashed border-accent/90 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]" />
-        </div>
+        <div aria-hidden="true" className="pointer-events-none absolute inset-2 rounded-2xl border-2 border-dashed border-accent/90" />
       )}
 
       {status === 'starting' && (

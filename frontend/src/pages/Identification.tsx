@@ -162,7 +162,7 @@ export function Identification({ navigate }: IdentificationProps) {
               {CAMERA_ERROR_MESSAGES[camera.error]}
             </p>
           ) : (
-            <p className="text-lg text-muted">Coloca los billetes planos, separados, con buena luz y completos dentro del recuadro.</p>
+            <p className="text-lg text-muted">Se captura toda la imagen de la cámara. Coloca los billetes planos, separados y con buena luz. Aleja el teléfono hasta que todos se vean completos, dejando espacio en los bordes.</p>
           )}
 
           <div className="mt-auto flex flex-col gap-3">

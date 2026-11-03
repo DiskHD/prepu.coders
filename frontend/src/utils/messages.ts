@@ -11,14 +11,14 @@ export const SPOKEN = {
   welcome:
     'Bienvenido a Billete al Tiro. Pulsa el botón Identificar billete para usar la cámara, o Escuchar instrucciones para saber cómo funciona.',
   instructions:
-    'Billete al Tiro te dice el valor de un billete usando la cámara. ' +
-    'Pulsa Identificar billete. Coloca el billete sobre una superficie plana y con buena luz. ' +
-    'Sostén el teléfono a unos 25 centímetros, por encima del billete, con la cámara trasera apuntando hacia él. ' +
-    'Procura que el billete completo quepa en la imagen. ' +
+    'Billete al Tiro identifica un billete o suma varios billetes mexicanos usando la cámara. ' +
+    'Pulsa Identificar billete y elige el modo de reconocimiento. Coloca los billetes separados sobre una superficie plana y con buena luz. ' +
+    'Sostén el teléfono por encima de los billetes, con la cámara trasera apuntando hacia ellos. ' +
+    'La vista previa muestra toda la imagen que se captura. Aleja el teléfono hasta que todos los billetes quepan completos, dejando espacio en los bordes. ' +
     'Después pulsa el botón Capturar, que ocupa la parte inferior de la pantalla. ' +
     'Escucharás el resultado en unos segundos. También puedes elegir una foto de tu galería.',
   cameraReady:
-    'Cámara lista. Coloca el billete plano, con buena luz, a unos 25 centímetros. Que se vea completo. ' +
+    'Cámara lista. Se captura toda la imagen. Coloca uno o varios billetes planos, separados y con buena luz. Aleja el teléfono hasta que todos se vean completos, dejando espacio en los bordes. ' +
     'El botón Capturar está en la parte inferior de la pantalla.',
   cameraUnavailable:
     'No se pudo usar la cámara. Puedes elegir una foto de tu galería con el botón Elegir imagen.',

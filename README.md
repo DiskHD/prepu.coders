@@ -523,6 +523,12 @@ muestra cantidad, total en MXN, denominación y confianza de cada billete, y las
 cajas sobre la foto. El asistente anuncia el total en español (`es-MX`), conserva
 los anuncios para lectores de pantalla y permite repetir el resultado.
 
+La cámara muestra el fotograma completo sin recortar los lados y usa una guía
+amplia para varios billetes. Solicita formato 4:3 a 1920 × 1440 cuando el dispositivo
+lo permite, adaptándose al formato real que entregue la cámara. Para encuadrar más
+billetes, aleja el teléfono y deja espacio alrededor de ellos; el ángulo físico
+disponible depende de la cámara del dispositivo.
+
 El detector está en `backend/app/detector.py`, la API FastAPI en
 `backend/app/main.py` y la interfaz en `frontend/src/pages/Identification.tsx`.
 Se verificó que `models/best.pt` es un modelo de detección con estas clases reales:
